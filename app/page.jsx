@@ -1,6 +1,6 @@
 import { buscarPainel, indisponivel } from '@/lib/api';
 import {
-  numero, porcento, mbps, ms, horas, dataHora, distribuir,
+  numero, porcento, mbps, ms, dataHora, distribuir,
 } from '@/lib/formato';
 import {
   Kpi, Secao, Metrica, Barras, GraficoSerie, Indisponivel,
@@ -32,14 +32,13 @@ export default async function Painel({ searchParams }) {
   const dias = PERIODOS.some((p) => p.dias === pedido) ? pedido : 30;
 
   const painel = await buscarPainel(dias);
-  const { overview, usuarios, notificacoes, chamados, speedtest, upgrades } = painel;
+  const { overview, usuarios, notificacoes, speedtest, upgrades } = painel;
 
   // Prefere o detalhe (mesmo número, e ainda traz a série); cai no overview se
   // aquele domínio específico falhou.
   const geral = overview.ok ? overview.dados : null;
   const u = usuarios.ok ? usuarios.dados : geral?.usuarios;
   const n = notificacoes.ok ? notificacoes.dados : geral?.notificacoes;
-  const c = chamados.ok ? chamados.dados : geral?.chamados;
   const s = speedtest.ok ? speedtest.dados : geral?.speedtest;
 
   // O funil do Trello pode vir marcado como indisponível dentro de um 200 —
@@ -47,15 +46,24 @@ export default async function Painel({ searchParams }) {
   const upgradesBruto = upgrades.ok ? upgrades.dados : geral?.upgrades;
   const g = indisponivel(upgradesBruto) ? null : upgradesBruto;
 
-  const tudoFora = !overview.ok && !usuarios.ok && !chamados.ok;
+  const tudoFora = !overview.ok && !usuarios.ok && !speedtest.ok;
 
   return (
     <>
       <header className="cabecalho">
         <div className="cabecalho-interno">
           <div className="marca">
-            <span className="marca-selo">P</span>
-            Predialnet <span className="marca-sub">· Painel</span>
+            {/* 1920x480 no arquivo — a proporção 4:1 é declarada aqui para o
+                navegador reservar o espaço antes de baixar a imagem. */}
+            <img
+              src="/logo.png"
+              alt="Predialnet"
+              className="marca-logo"
+              width={96}
+              height={24}
+            />
+            <span className="marca-divisor" aria-hidden="true" />
+            <span className="marca-sub">Painel</span>
           </div>
           <SeletorPeriodo atual={dias} />
         </div>
@@ -82,11 +90,6 @@ export default async function Painel({ searchParams }) {
             rotulo="Com push ativo"
             valor={numero(u?.com_push)}
             nota={u ? `${numero(u.dispositivos)} dispositivos` : null}
-          />
-          <Kpi
-            rotulo="Chamados em fila"
-            valor={numero(c?.em_fila)}
-            nota={c ? `${numero(c.resolvidos_periodo)} resolvidos no período` : null}
           />
           <Kpi
             rotulo="Testes de velocidade"
@@ -194,45 +197,6 @@ export default async function Painel({ searchParams }) {
               />
             </div>
           ) : null}
-        </Secao>
-
-        {/* ── Chamados ────────────────────────────────────── */}
-        <Secao
-          titulo="Chamados de suporte"
-          nota={c ? `tempo médio de resolução: ${horas(c.tempo_medio_resolucao_horas)}` : null}
-        >
-          {!c ? <Indisponivel motivo={chamados.erro} /> : (
-            <>
-              <div className="metricas" style={{ marginBottom: 22 }}>
-                <Metrica rotulo="Em fila" valor={numero(c.em_fila)} />
-                <Metrica rotulo="Abertos no período" valor={numero(c.abertos_periodo)} />
-                <Metrica rotulo="Resolvidos no período" valor={numero(c.resolvidos_periodo)} />
-                <Metrica rotulo="Tempo médio" valor={horas(c.tempo_medio_resolucao_horas)} />
-              </div>
-
-              <div className="colunas">
-                <div>
-                  <div className="metrica-rotulo" style={{ marginBottom: 10 }}>Por status</div>
-                  <Barras dados={distribuir(c.por_status)} />
-                </div>
-                <div>
-                  <div className="metrica-rotulo" style={{ marginBottom: 10 }}>Por prioridade</div>
-                  <Barras dados={distribuir(c.por_prioridade)} tom="fraco" />
-                </div>
-                <div>
-                  <div className="metrica-rotulo" style={{ marginBottom: 10 }}>Por categoria</div>
-                  <Barras dados={distribuir(c.por_categoria)} tom="fraco" />
-                </div>
-              </div>
-
-              {c.serie_aberturas ? (
-                <div style={{ marginTop: 22 }}>
-                  <div className="metrica-rotulo" style={{ marginBottom: 8 }}>Aberturas por dia</div>
-                  <GraficoSerie dados={c.serie_aberturas} altura={110} />
-                </div>
-              ) : null}
-            </>
-          )}
         </Secao>
 
         {/* ── Speedtest ───────────────────────────────────── */}

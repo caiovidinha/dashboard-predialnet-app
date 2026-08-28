@@ -70,29 +70,28 @@ a { color: inherit; text-decoration: none; }
 .marca {
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  gap: 12px;
 }
 
-/* O quadradinho da marca é o único bloco sólido de #9c0004 na tela.
-   O resto usa a cor em traço fino, para não competir com o dado. */
-.marca-selo {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--marca);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
+/* O logo já é a marca em #9c0004 — por isso o resto da tela usa a cor só em
+   traço fino, para não competir com ele nem com o dado. */
+.marca-logo {
+  height: 24px;
+  width: auto;
+  display: block;
+}
+
+.marca-divisor {
+  width: 1px;
+  height: 18px;
+  background: var(--borda-forte);
 }
 
 .marca-sub {
-  color: var(--texto-fraco);
-  font-weight: 400;
+  color: var(--texto-medio);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 /* ── Seletor de período ─────────────────────────────────── */

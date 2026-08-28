@@ -3,9 +3,12 @@
 Dashboard de estatísticas do app, consumindo os endpoints `/stats` da API em
 `appgw.predialnet.com.br`.
 
-Cobre base de usuários, funil de upgrade de planos (board do Trello), chamados
-de suporte, qualidade de conexão e notificações push. O blog tem painel próprio
-e ficou de fora daqui de propósito — este painel é do app.
+Cobre funil de upgrade de planos (board do Trello), base de usuários, qualidade
+de conexão e notificações push.
+
+Chamados de suporte e blog ficaram de fora de propósito — cada um tem painel
+próprio, e as rotas /stats/chamados e /stats/blog continuam existindo na API
+para quem precisar delas.
 
 Next.js 15 (App Router), JavaScript puro, sem biblioteca de UI nem de gráficos.
 
