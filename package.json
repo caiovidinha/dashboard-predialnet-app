@@ -1,0 +1,18 @@
+{
+  "name": "dashboard-predialnet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard de estatísticas do app Predialnet (consome /stats da appgw)",
+  "scripts": {
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "lint": "next lint",
+    "verifica": "node scripts/verifica.js"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

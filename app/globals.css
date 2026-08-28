@@ -1,0 +1,375 @@
+/* Dashboard Predialnet — branco predominante, marca em #9c0004.
+   Sem framework de CSS: o projeto é pequeno o bastante para que uma folha
+   organizada saia mais leve e mais legível que uma pilha de utilitários. */
+
+:root {
+  --marca: #9c0004;
+  --marca-escura: #7a0003;
+  --marca-fraca: rgba(156, 0, 4, 0.08);
+  --marca-tenue: rgba(156, 0, 4, 0.16);
+
+  --fundo: #fafafb;
+  --superficie: #ffffff;
+  --borda: #e9eaee;
+  --borda-forte: #d9dbe1;
+
+  --texto: #14161a;
+  --texto-medio: #5a616b;
+  --texto-fraco: #8a919c;
+
+  --raio: 12px;
+  --raio-pequeno: 8px;
+  --sombra: 0 1px 2px rgba(20, 22, 26, 0.04);
+
+  --largura: 1180px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ── Layout ─────────────────────────────────────────────── */
+
+.pagina {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.cabecalho {
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borda);
+  margin-bottom: 28px;
+}
+
+.cabecalho-interno {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* O quadradinho da marca é o único bloco sólido de #9c0004 na tela.
+   O resto usa a cor em traço fino, para não competir com o dado. */
+.marca-selo {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--marca);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.marca-sub {
+  color: var(--texto-fraco);
+  font-weight: 400;
+}
+
+/* ── Seletor de período ─────────────────────────────────── */
+
+.periodos {
+  display: flex;
+  gap: 2px;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  padding: 2px;
+}
+
+.periodo {
+  padding: 6px 13px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--texto-medio);
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.periodo:hover { background: #fff; color: var(--texto); }
+
+.periodo[data-ativo='true'] {
+  background: var(--marca);
+  color: #fff;
+  font-weight: 500;
+}
+
+.periodo[data-ativo='true']:hover { background: var(--marca-escura); color: #fff; }
+
+/* ── Cartões de indicador ───────────────────────────────── */
+
+.grade-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.kpi {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 16px 18px;
+  box-shadow: var(--sombra);
+}
+
+.kpi-rotulo {
+  font-size: 12px;
+  color: var(--texto-medio);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-valor {
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-nota {
+  font-size: 12px;
+  color: var(--texto-fraco);
+  margin-top: 6px;
+}
+
+.kpi-nota strong { color: var(--marca); font-weight: 600; }
+
+/* ── Seções ─────────────────────────────────────────────── */
+
+.secao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.secao-topo {
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.secao-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Traço vertical na cor da marca — a assinatura visual das seções. */
+.secao-titulo::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--marca);
+}
+
+.secao-nota { font-size: 12px; color: var(--texto-fraco); }
+
+.secao-corpo { padding: 18px; }
+
+.colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 26px;
+}
+
+.par { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+
+@media (max-width: 860px) {
+  .par { grid-template-columns: 1fr; }
+}
+
+/* ── Números soltos dentro de seção ─────────────────────── */
+
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 18px;
+}
+
+.metrica-rotulo { font-size: 12px; color: var(--texto-medio); }
+
+.metrica-valor {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ── Barras de distribuição ─────────────────────────────── */
+
+.barras { display: flex; flex-direction: column; gap: 11px; }
+
+.barra-linha { display: grid; gap: 5px; }
+
+.barra-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.barra-rotulo { color: var(--texto); }
+
+.barra-valor {
+  color: var(--texto-medio);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.barra-trilho {
+  height: 6px;
+  background: var(--fundo);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.barra-preenchida {
+  height: 100%;
+  background: var(--marca);
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+/* Barras secundárias em tom fraco: mesma cor, menos peso visual. */
+.barras[data-tom='fraco'] .barra-preenchida { background: var(--marca-tenue); }
+
+/* ── Tabela ─────────────────────────────────────────────── */
+
+.tabela { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+.tabela th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--texto-fraco);
+  font-size: 12px;
+  padding: 0 10px 8px 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela td {
+  padding: 9px 10px 9px 0;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: top;
+}
+
+.tabela tr:last-child td { border-bottom: none; }
+
+.tabela .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.tabela-titulo { color: var(--texto); }
+
+.tabela-sub { color: var(--texto-fraco); font-size: 12px; }
+
+/* ── Gráfico ────────────────────────────────────────────── */
+
+.grafico { width: 100%; display: block; }
+
+.grafico-vazio {
+  display: grid;
+  place-items: center;
+  height: 120px;
+  color: var(--texto-fraco);
+  font-size: 13px;
+  background: var(--fundo);
+  border-radius: var(--raio-pequeno);
+}
+
+.grafico-eixo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--texto-fraco);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Estados ────────────────────────────────────────────── */
+
+.aviso {
+  background: var(--marca-fraca);
+  border: 1px solid var(--marca-tenue);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--marca-escura);
+  margin-bottom: 16px;
+}
+
+.aviso strong { font-weight: 600; }
+
+.aviso code {
+  background: rgba(156, 0, 4, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.indisponivel {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 26px 18px;
+  color: var(--texto-fraco);
+  font-size: 13px;
+  text-align: center;
+}
+
+.vazio { color: var(--texto-fraco); font-size: 13px; padding: 8px 0; }
+
+.rodape {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borda);
+  font-size: 12px;
+  color: var(--texto-fraco);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
