@@ -35,7 +35,9 @@ npm run build && npm start
 |---|---|
 | `API_URL` | Base da API (padrão `https://appgw.predialnet.com.br`) |
 | `ADMIN_TOKEN` | **Obrigatória.** O `ADMIN_BYPASS_TOKEN` do backend |
-| `DASHBOARD_USUARIO` / `DASHBOARD_SENHA` | Autenticação básica da própria tela |
+| `DASHBOARD_SENHA` | Senha do botão "Painel do app" na tela de login (vê tudo) |
+| `PARCERIAS_SENHA` | Senha do botão "Parcerias" (vê só `/parcerias`) |
+| `SESSAO_SEGREDO` | Opcional. Assina o cookie de sessão; sem ele, deriva das senhas |
 
 ---
 
@@ -51,16 +53,21 @@ token no bundle e qualquer visitante leria o segredo do operador no DevTools.
 Como consequência, também não existe problema de CORS: a chamada é
 servidor-para-servidor, e o navegador nunca fala com a `appgw`.
 
-### O painel tem senha própria
+### O painel tem login, com duas áreas
 
-O app guarda um token poderoso e mostra métricas do negócio inteiro. Sem
-proteção, quem descobrisse a URL veria tudo. O `middleware.js` faz autenticação
-básica do HTTP quando `DASHBOARD_SENHA` está preenchida.
+O app guarda um token poderoso e mostra métricas do negócio inteiro. A tela
+`/login` tem um botão por área, cada uma com a sua senha:
 
-É proteção modesta — não tem sessão, nem bloqueio por tentativa — mas resolve o
-caso real: URL vazada e robô de varredura. **Se você deixar `DASHBOARD_SENHA`
-vazio, a página fica aberta**, o que só faz sentido em rede fechada ou atrás de
-VPN.
+- **Painel do app** (`DASHBOARD_SENHA`) — o operador: vê o painel do app e as parcerias.
+- **Parcerias** (`PARCERIAS_SENHA`) — vê só `/parcerias` e o download da planilha.
+  O `middleware.js` redireciona qualquer outra rota, e a própria página do app
+  confere a área de novo antes de buscar dados: os números do app nunca saem
+  do servidor para essa sessão.
+
+A sessão é um cookie `httpOnly` assinado com HMAC (`lib/sessao.js`), válido
+por 12 h. Não há bloqueio por tentativa (não existe banco aqui), só um atraso
+fixo na senha errada. **Com as duas senhas vazias, o painel fica aberto**, o que
+só faz sentido em desenvolvimento ou rede fechada.
 
 ### Gráfico é SVG escrito à mão
 
@@ -111,7 +118,7 @@ pm2 save
 ```
 
 Se for para a Vercel, as variáveis vão em Environment Variables — e vale manter
-`DASHBOARD_SENHA` preenchida, já que lá a URL é pública por natureza.
+`DASHBOARD_SENHA` e `PARCERIAS_SENHA` preenchidas, já que lá a URL é pública por natureza.
 
 O `npm audit` acusa vulnerabilidades no `postcss`, dependência transitiva do
 build do Next. São falhas exploráveis via CSS controlado pelo atacante; aqui o

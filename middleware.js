@@ -1,45 +1,57 @@
 import { NextResponse } from 'next/server';
+import {
+  AREAS, COOKIE, lerSessao, loginDesligado, podeAbrir,
+} from '@/lib/sessao';
 
 // O dashboard guarda o token do operador no servidor e mostra números do
-// negócio inteiro. Sem isto, quem descobrir a URL vê tudo — o app em si não
-// pede nada de quem acessa.
+// negócio inteiro. Sem isto, quem descobrir a URL vê tudo.
 //
-// Autenticação básica do HTTP: é pouca coisa, mas resolve o caso real (URL
-// vazada, robô de varredura) sem inventar tela de login. Se você for publicar
-// numa rede fechada ou atrás de VPN, pode deixar DASHBOARD_SENHA vazio.
+// Duas áreas com senhas separadas (ver lib/sessao.js): quem entra com a senha
+// das parcerias só abre /parcerias — o painel do app nem renderiza para ele,
+// então os dados do app não saem do servidor. Quem entra com a senha do
+// painel vê as duas telas.
+//
+// A área da sessão segue para as páginas no cabeçalho x-painel-area (o
+// cabeçalho usa para esconder o link do app). Ele é sempre sobrescrito aqui:
+// o valor que o navegador mandar é descartado.
 
-const USUARIO = process.env.DASHBOARD_USUARIO || 'predialnet';
-const SENHA = process.env.DASHBOARD_SENHA;
+export async function middleware(requisicao) {
+  const { pathname } = requisicao.nextUrl;
+  const cabecalhos = new Headers(requisicao.headers);
+  cabecalhos.delete('x-painel-area');
 
-// Comparação de tempo constante: com === , o tempo de resposta vaza quantos
-// caracteres do começo estavam certos.
-function iguais(a, b) {
-  if (a.length !== b.length) return false;
-  let diferenca = 0;
-  for (let i = 0; i < a.length; i += 1) diferenca |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diferenca === 0;
-}
-
-export function middleware(requisicao) {
-  if (!SENHA) return NextResponse.next();
-
-  const header = requisicao.headers.get('authorization') || '';
-  const [esquema, credencial] = header.split(' ');
-
-  if (esquema === 'Basic' && credencial) {
-    const [usuario, ...resto] = atob(credencial).split(':');
-    const senha = resto.join(':'); // senha com ':' continua válida
-    if (iguais(usuario, USUARIO) && iguais(senha, SENHA)) return NextResponse.next();
+  if (loginDesligado()) {
+    cabecalhos.set('x-painel-area', 'aberto');
+    return NextResponse.next({ request: { headers: cabecalhos } });
   }
 
-  return new NextResponse('Acesso restrito.', {
-    status: 401,
-    headers: { 'WWW-Authenticate': 'Basic realm="Painel Predialnet", charset="UTF-8"' },
-  });
+  const area = await lerSessao(requisicao.cookies.get(COOKIE)?.value);
+
+  if (pathname === '/login') {
+    // já logado: vai direto para a própria área
+    if (area) return NextResponse.redirect(new URL(AREAS[area].inicio, requisicao.url));
+    return NextResponse.next({ request: { headers: cabecalhos } });
+  }
+
+  if (!area) {
+    const destino = new URL('/login', requisicao.url);
+    if (pathname.startsWith('/parcerias')) destino.searchParams.set('area', 'parcerias');
+    return NextResponse.redirect(destino);
+  }
+
+  if (!podeAbrir(area, pathname)) {
+    return NextResponse.redirect(new URL(AREAS[area].inicio, requisicao.url));
+  }
+
+  cabecalhos.set('x-painel-area', area);
+  const resposta = NextResponse.next({ request: { headers: cabecalhos } });
+  // A tela muda conforme a sessão: nada de cache compartilhado entre áreas.
+  resposta.headers.set('Cache-Control', 'private, no-store');
+  return resposta;
 }
 
 export const config = {
-  // Protege as páginas, deixa passar o estático do Next — bloquear o /_next
-  // quebraria o CSS da própria tela de erro.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Protege as páginas, deixa passar o estático do Next e o logo da tela de
+  // login — bloquear o /_next quebraria o CSS da própria tela de login.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|logo.png).*)'],
 };

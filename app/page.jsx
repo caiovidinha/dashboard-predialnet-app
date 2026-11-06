@@ -5,31 +5,18 @@ import {
 import {
   Kpi, Secao, Metrica, Barras, GraficoSerie, Indisponivel,
 } from '@/components/ui';
-
-const PERIODOS = [
-  { dias: 7, rotulo: '7 dias' },
-  { dias: 30, rotulo: '30 dias' },
-  { dias: 90, rotulo: '90 dias' },
-  { dias: 365, rotulo: '12 meses' },
-];
-
-function SeletorPeriodo({ atual }) {
-  return (
-    <nav className="periodos">
-      {PERIODOS.map((p) => (
-        <a key={p.dias} href={`/?dias=${p.dias}`} className="periodo" data-ativo={p.dias === atual}>
-          {p.rotulo}
-        </a>
-      ))}
-    </nav>
-  );
-}
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import Cabecalho, { diasDe } from '@/components/Cabecalho';
 
 export default async function Painel({ searchParams }) {
   // No Next 15 searchParams é assíncrono.
+  // Segunda trava, além do middleware: a sessão de parcerias nunca chega a
+  // buscar os dados do app, nem se o matcher do middleware for mexido.
+  if ((await headers()).get('x-painel-area') === 'parcerias') redirect('/parcerias');
+
   const params = await searchParams;
-  const pedido = Number.parseInt(params?.dias, 10);
-  const dias = PERIODOS.some((p) => p.dias === pedido) ? pedido : 30;
+  const dias = diasDe(params);
 
   const painel = await buscarPainel(dias);
   const { overview, usuarios, notificacoes, speedtest, upgrades } = painel;
@@ -50,24 +37,7 @@ export default async function Painel({ searchParams }) {
 
   return (
     <>
-      <header className="cabecalho">
-        <div className="cabecalho-interno">
-          <div className="marca">
-            {/* 1920x480 no arquivo — a proporção 4:1 é declarada aqui para o
-                navegador reservar o espaço antes de baixar a imagem. */}
-            <img
-              src="/logo.png"
-              alt="Predialnet"
-              className="marca-logo"
-              width={96}
-              height={24}
-            />
-            <span className="marca-divisor" aria-hidden="true" />
-            <span className="marca-sub">Painel</span>
-          </div>
-          <SeletorPeriodo atual={dias} />
-        </div>
-      </header>
+      <Cabecalho atual="/" dias={dias} />
 
       <main className="pagina">
         {tudoFora ? (
