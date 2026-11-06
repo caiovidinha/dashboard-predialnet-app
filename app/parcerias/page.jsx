@@ -4,6 +4,8 @@ import {
   Kpi, Secao, Metrica, Barras, GraficoSerie, Tabela,
 } from '@/components/ui';
 import Cabecalho, { diasDe } from '@/components/Cabecalho';
+import FiltroInfluencer from './FiltroInfluencer';
+import LinkParceria from './cadastro/LinkParceria';
 
 export const metadata = { title: 'Parcerias — Predialnet' };
 
@@ -28,20 +30,6 @@ const link = (base, params) => {
   return s ? `${base}?${s}` : base;
 };
 
-function FiltroParcerias({ conhecidas, atual, dias }) {
-  if (!conhecidas?.length) return null;
-  return (
-    <nav className="filtro-parcerias" aria-label="Filtrar parceria">
-      <a href={link('/parcerias', { dias })} className="chip" data-ativo={!atual}>Todas</a>
-      {conhecidas.map((p) => (
-        <a key={p} href={link('/parcerias', { dias, parceria: p })} className="chip" data-ativo={p === atual}>
-          {p}
-        </a>
-      ))}
-    </nav>
-  );
-}
-
 export default async function Parcerias({ searchParams }) {
   const params = await searchParams;
   const dias = diasDe(params);
@@ -50,6 +38,8 @@ export default async function Parcerias({ searchParams }) {
   const resposta = await buscarParcerias(dias, parceria);
   const r = resposta.ok ? resposta.dados : null;
   const t = r?.totais;
+  const info = r?.parceria_info;
+  const comAcesso = r ? r.parcerias.filter((l) => l.visitantes > 0).length : 0;
 
   const csv = (tipo) => link('/parcerias/csv', { dias, parceria, tipo });
 
@@ -62,10 +52,22 @@ export default async function Parcerias({ searchParams }) {
           <div>
             <h1 className="titulo-pagina">
               Parcerias no Assine Já
-              {parceria ? <span className="titulo-filtro"> · {parceria}</span> : null}
+              {parceria ? <span className="titulo-filtro"> · {info?.nome || parceria}</span> : null}
             </h1>
             <p className="subtitulo-pagina">
-              Visitantes que chegaram pelo link <code>assineja?parceria=…</code> e o que cada um fez.
+              {info ? (
+                <>
+                  {info.instagram ? (
+                    <a className="link" href={`https://instagram.com/${info.instagram}`} target="_blank" rel="noopener noreferrer">@{info.instagram}</a>
+                  ) : null}
+                  {info.instagram ? ' · ' : ''}
+                  {info.cadastrada ? <>link <code>assineja?parceria={info.slug}</code></> : (
+                    <>link sem cadastro · <a className="link" href="/parcerias/cadastro">cadastrar</a></>
+                  )}
+                </>
+              ) : (
+                <>Visitantes que chegaram pelo link <code>assineja?parceria=…</code> e o que cada um fez.</>
+              )}
             </p>
           </div>
           <div className="acoes">
@@ -80,10 +82,23 @@ export default async function Parcerias({ searchParams }) {
           </div>
         ) : (
           <>
-            <FiltroParcerias conhecidas={r.parcerias_conhecidas} atual={parceria} dias={dias} />
+            <div className="barra-filtro">
+              <FiltroInfluencer conhecidas={r.parcerias_conhecidas} atual={parceria} dias={dias} />
+              <a className="botao botao-fraco" href="/parcerias/cadastro">+ Cadastrar influencer</a>
+            </div>
+
+            {info?.cadastrada ? (
+              <div style={{ marginBottom: 18 }}>
+                <LinkParceria slug={info.slug} />
+              </div>
+            ) : null}
 
             <div className="grade-kpi">
-              <Kpi rotulo="Visitantes" valor={numero(t.visitantes)} nota={`${numero(r.parcerias.length)} parceria(s) com acesso`} />
+              <Kpi
+                rotulo="Visitantes"
+                valor={numero(t.visitantes)}
+                nota={parceria ? `no período de ${dias} dias` : `${numero(comAcesso)} influencer(s) com acesso`}
+              />
               <Kpi
                 rotulo="Consultaram o CEP"
                 valor={numero(t.consultas)}
@@ -145,15 +160,23 @@ export default async function Parcerias({ searchParams }) {
             </Secao>
 
             {!parceria ? (
-              <Secao titulo="Por parceria">
+              <Secao titulo="Por influencer" nota="cadastrados sem acesso aparecem com zero">
                 <div className="tabela-rolagem">
                   <Tabela
                     vazio="Nenhuma parceria com acesso no período."
                     colunas={[
                       {
                         chave: 'parceria',
-                        titulo: 'Parceria',
-                        render: (l) => <a className="link" href={link('/parcerias', { dias, parceria: l.parceria })}>{l.parceria}</a>,
+                        titulo: 'Influencer',
+                        render: (l) => (
+                          <>
+                            <a className="link" href={link('/parcerias', { dias, parceria: l.parceria })}>{l.nome || l.parceria}</a>
+                            <div className="tabela-sub">
+                              {l.instagram ? `@${l.instagram}` : l.parceria}
+                              {l.cadastrada === false ? ' · sem cadastro' : ''}
+                            </div>
+                          </>
+                        ),
                       },
                       { chave: 'visitantes', titulo: 'Visitantes', num: true, render: (l) => numero(l.visitantes) },
                       { chave: 'consultas', titulo: 'Consultas', num: true, render: (l) => numero(l.consultas) },

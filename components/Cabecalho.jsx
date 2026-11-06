@@ -20,6 +20,7 @@ export const diasDe = (params) => {
 const PAGINAS = [
   { caminho: '/', rotulo: 'App' },
   { caminho: '/parcerias', rotulo: 'Parcerias' },
+  { caminho: '/parcerias/cadastro', rotulo: 'Influencers' },
 ];
 
 const linkCom = (caminho, params) => {
@@ -28,11 +29,13 @@ const linkCom = (caminho, params) => {
   return s ? `${caminho}?${s}` : caminho;
 };
 
-export default async function Cabecalho({ atual, dias, filtros = {} }) {
+export default async function Cabecalho({
+  atual, dias, filtros = {}, semPeriodo = false,
+}) {
   // Área da sessão, posta pelo middleware. Quem entrou com a senha das
   // parcerias não vê o link do app (e o middleware barra a rota de qualquer jeito).
   const area = (await headers()).get('x-painel-area');
-  const paginas = area === 'parcerias' ? PAGINAS.filter((p) => p.caminho === '/parcerias') : PAGINAS;
+  const paginas = area === 'parcerias' ? PAGINAS.filter((p) => p.caminho.startsWith('/parcerias')) : PAGINAS;
   const comLogin = area === 'app' || area === 'parcerias';
 
   return (
@@ -58,18 +61,20 @@ export default async function Cabecalho({ atual, dias, filtros = {} }) {
           </nav>
         </div>
         <div className="cabecalho-acoes">
-          <nav className="periodos" aria-label="Período">
-            {PERIODOS.map((p) => (
-              <a
-                key={p.dias}
-                href={linkCom(atual, { ...filtros, dias: p.dias })}
-                className="periodo"
-                data-ativo={p.dias === dias}
-              >
-                {p.rotulo}
-              </a>
-            ))}
-          </nav>
+          {semPeriodo ? null : (
+            <nav className="periodos" aria-label="Período">
+              {PERIODOS.map((p) => (
+                <a
+                  key={p.dias}
+                  href={linkCom(atual, { ...filtros, dias: p.dias })}
+                  className="periodo"
+                  data-ativo={p.dias === dias}
+                >
+                  {p.rotulo}
+                </a>
+              ))}
+            </nav>
+          )}
           {comLogin ? (
             <form action={sair}>
               <button type="submit" className="sair">Sair</button>
