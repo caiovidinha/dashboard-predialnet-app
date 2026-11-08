@@ -22,6 +22,7 @@ const PAGINAS = [
   { caminho: '/parcerias', rotulo: 'Parcerias' },
   { caminho: '/parcerias/cadastro', rotulo: 'Influencers' },
   { caminho: '/sistema', rotulo: 'Sistema' },
+  { caminho: '/sistema/logs', rotulo: 'Logs' },
 ];
 
 const linkCom = (caminho, params) => {
